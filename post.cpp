@@ -37,11 +37,11 @@ char *compute_post_request(char *host, char *url, char *content_type, char **key
     compute_message(message, line);
 
     json j;
-
     for (int i = 0; i < body_data_fields_count; i++)
     {
         j[keys[i]] = values[i];
     }
+
     // Serialize the JSON
     string s = j.dump();
     strcpy(body_data_buffer, s.c_str());
@@ -67,5 +67,6 @@ char *compute_post_request(char *host, char *url, char *content_type, char **key
     strcat(message, body_data_buffer);
 
     free(line);
+    free(body_data_buffer);
     return message;
 }

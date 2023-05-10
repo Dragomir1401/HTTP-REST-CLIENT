@@ -78,7 +78,6 @@ char *receive_from_server(int sockfd)
     buffer buffer = buffer_init();
     int header_end = 0;
     int content_length = 0;
-
     do
     {
         int bytes = read(sockfd, response, BUFLEN);
@@ -94,7 +93,6 @@ char *receive_from_server(int sockfd)
         }
 
         buffer_add(&buffer, response, (size_t)bytes);
-
         header_end = buffer_find(&buffer, HEADER_TERMINATOR, HEADER_TERMINATOR_SIZE);
 
         if (header_end >= 0)
@@ -107,7 +105,6 @@ char *receive_from_server(int sockfd)
             {
                 continue;
             }
-
             content_length_start += CONTENT_LENGTH_SIZE;
             content_length = strtol(buffer.data + content_length_start, NULL, 10);
             break;
@@ -118,7 +115,6 @@ char *receive_from_server(int sockfd)
     while (buffer.size < total)
     {
         int bytes = read(sockfd, response, BUFLEN);
-
         if (bytes < 0)
         {
             error("ERROR reading response from socket");

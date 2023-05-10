@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <iostream>
+#include <arpa/inet.h>
 #include "headers.h"
 using namespace std;
 
@@ -56,5 +57,6 @@ int main(int argc, char *argv[])
             cout << "Invalid command" << endl;
         }
     }
+
     return 0;
 }
