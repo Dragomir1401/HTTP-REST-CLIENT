@@ -10,8 +10,10 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     string command;
-
+    char *cookie = new char[MAX_COOKIE_LEN];
+    strcpy(cookie, "");
     bool running = true;
+
     while (running)
     {
         cout << "Enter command: ";
@@ -26,11 +28,11 @@ int main(int argc, char *argv[])
         }
         else if (!strncmp(command.c_str(), "login", 5))
         {
-            handle_login();
+            handle_login(cookie);
         }
         else if (!strncmp(command.c_str(), "enter_library", 13))
         {
-            system(command.c_str());
+            handle_enter_library(cookie);
         }
         else if (!strncmp(command.c_str(), "get_books", 9))
         {
