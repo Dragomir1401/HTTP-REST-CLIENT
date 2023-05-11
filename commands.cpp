@@ -49,6 +49,21 @@ void deallocate_memory(char *response, char *message, char *keys[CREDETIALS_COUN
     delete[] code;
 }
 
+void deallocate_memory1(char *response, char *message,
+                        char *host, char *url, char *content_type, char *ip, char *code)
+{
+    // Free
+    free(response);
+    free(message);
+
+    // Deallocate the memory
+    delete[] host;
+    delete[] url;
+    delete[] content_type;
+    delete[] ip;
+    delete[] code;
+}
+
 void extract_code(char *response, char *code)
 {
     // Extract HTTP code from response
@@ -116,10 +131,16 @@ void handle_register()
 
 void extract_cookie(char *response, char *cookie)
 {
-    // To do
+    // Extract cookie from response
+    char *set_cookie = strstr(response, "Set-Cookie:");
+
+    char *token = strtok(set_cookie, " ;");
+    token = strtok(NULL, " ;");
+
+    strcpy(cookie, token);
 }
 
-void handle_login()
+void handle_login(char *cookie)
 {
     // Allocate memory for the array elements
     char *message = (char *)malloc(BUFLEN * sizeof(char));
@@ -173,12 +194,77 @@ void handle_login()
     if (res != NULL)
     {
         // Extract the cookie
-        char *cookie = new char[MAX_COOKIE_LEN];
         extract_cookie(response, cookie);
     }
 
     // Deallocate the memory
     deallocate_memory(response, message, keys, values, host, url, content_type, ip, code);
+
+    // Close connection
+    close_connection(sockfd);
+}
+
+void extract_content(char *response, char *content)
+{
+    // Extract content from response
+}
+
+void handle_enter_library(char *cookie)
+{
+    if (cookie == NULL)
+    {
+        cout << "You must be logged in to enter the library." << endl;
+        return;
+    }
+
+    // Allocate memory for the array elements
+    char *message = (char *)malloc(BUFLEN * sizeof(char));
+    char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
+
+    // Open connection
+    char *host = new char[MAX_HOST_LEN];
+    char *url = new char[URL_SIZE];
+    char *content_type = new char[MAX_TYPE_LEN];
+    strcpy(host, "34.254.242.81:8080");
+    strcpy(url, "/api/v1/tema/library/access");
+    strcpy(content_type, "application/json");
+
+    char *cookies[MAX_COOKIE_COUNT] = {cookie};
+    // Open connection and send the request
+    message = compute_get_request(host, url, NULL, cookies, 1);
+
+    // Create the ip
+    char *ip = new char[MAX_IP_SIZE];
+    strcpy(ip, "34.254.242.81");
+
+    // Open connection
+    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+
+    // Send the request to the server
+    send_to_server(sockfd, message);
+
+    // Get the response from the server
+    response = receive_from_server(sockfd);
+
+    // Extract HTTP code from response
+    char *code = new char[4];
+    extract_code(response, code);
+
+    // If response contains code 200, the user entered the library
+    char *res = strstr(response, "200 OK");
+    res != NULL ? cout << "Entered the library successfully." << endl
+                : cout << "You are not logged in." << endl;
+
+    char *content = new char[MAX_CONTENT_LEN];
+    if (res)
+    {
+        // Extract the cookie
+        extract_content(response, content);
+        puts(content);
+    }
+
+    // Deallocate the memory
+    deallocate_memory1(response, message, host, url, content_type, ip, code);
 
     // Close connection
     close_connection(sockfd);
