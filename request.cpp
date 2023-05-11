@@ -14,7 +14,7 @@
 using namespace std;
 
 char *compute_get_request(char *host, char *url, char *query_params,
-                          char **cookies, int cookies_count)
+                          char **cookies, int cookies_count, char **tokens, int tokens_count)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
@@ -27,12 +27,22 @@ char *compute_get_request(char *host, char *url, char *query_params,
     sprintf(line, "Host: %s", host);
     compute_message(message, line);
 
-    // Add headers and/or cookies, according to the protocol format
+    // Add cookies, according to the protocol format
     if (cookies != NULL)
     {
         for (int i = 0; i < cookies_count; i++)
         {
             snprintf(line, LINELEN, "Cookie: %s", cookies[i]);
+            compute_message(message, line);
+        }
+    }
+
+    // Add tokens, according to the protocol format
+    if (tokens != NULL)
+    {
+        for (int i = 0; i < tokens_count; i++)
+        {
+            snprintf(line, LINELEN, "Authorization: Bearer %s", tokens[i]);
             compute_message(message, line);
         }
     }
