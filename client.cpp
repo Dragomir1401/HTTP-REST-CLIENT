@@ -11,7 +11,9 @@ int main(int argc, char *argv[])
 {
     string command;
     char *cookie = new char[MAX_COOKIE_LEN];
+    char *token = new char[MAX_TOKEN_LEN];
     strcpy(cookie, "");
+    strcpy(token, "");
     bool running = true;
 
     while (running)
@@ -32,15 +34,15 @@ int main(int argc, char *argv[])
         }
         else if (!strncmp(command.c_str(), "enter_library", 13))
         {
-            handle_enter_library(cookie);
+            handle_enter_library(cookie, token);
         }
         else if (!strncmp(command.c_str(), "get_books", 9))
         {
-            system(command.c_str());
+            handle_get_books(cookie, token);
         }
         else if (!strncmp(command.c_str(), "get_book", 8))
         {
-            system(command.c_str());
+            handle_get_book(cookie, token);
         }
         else if (!strncmp(command.c_str(), "add_book", 8))
         {
