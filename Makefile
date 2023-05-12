@@ -1,5 +1,5 @@
 CLIENT_PROJECT=client
-CLIENT_SOURCES=client.cpp access_commands.cpp request.cpp helpers.cpp post.cpp buffer.cpp command_helpers.cpp content_commands.cpp
+CLIENT_SOURCES=client.cpp access_commands.cpp get.cpp helpers.cpp post.cpp buffer.cpp command_helpers.cpp content_commands.cpp delete.cpp
 
 LIBRARY=nope
 INCPATHS=include
