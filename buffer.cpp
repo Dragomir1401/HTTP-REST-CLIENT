@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "buffer.hpp"
 
 buffer buffer_init(void)
 {
