@@ -7,8 +7,8 @@
 #include <netdb.h>      /* struct hostent, gethostbyname */
 #include <arpa/inet.h>
 #include <iostream>
-#include "buffer.h"
-#include "headers.h"
+#include "buffer.hpp"
+#include "headers.hpp"
 #define HEADER_TERMINATOR "\r\n\r\n"
 #define HEADER_TERMINATOR_SIZE (sizeof(HEADER_TERMINATOR) - 1)
 #define CONTENT_LENGTH "Content-Length: "
