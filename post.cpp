@@ -12,7 +12,7 @@
 #include <iostream>
 #include "json.hpp"
 using json = nlohmann::json;
-#include "headers.h"
+#include "headers.hpp"
 using namespace std;
 
 char *compute_post_request(char *host, char *url, char *content_type, char **keys, char **values,
