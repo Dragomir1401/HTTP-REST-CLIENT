@@ -15,209 +15,91 @@ using json = nlohmann::json;
 
 using namespace std;
 
-void handle_get_books(char *cookie, char *token)
+void handle_register()
 {
-    if (cookie == "" || token == "")
-    {
-        cout << "You must be logged in to access library contents." << endl;
-        return;
-    }
-
     // Allocate memory for the array elements
     char *message = (char *)malloc(BUFLEN * sizeof(char));
     char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
 
-    // Open connection
-    char *host = new char[MAX_HOST_LEN];
-    char *url = new char[URL_SIZE];
-    strcpy(host, "34.254.242.81:8080");
-    strcpy(url, "/api/v1/tema/library/books");
-
-    char *cookies[MAX_COOKIE_COUNT] = {cookie};
-    char *tokens[MAX_TOKEN_COUNT] = {token};
-
-    // Open connection and send the request
-    message = compute_get_request(host, url, NULL, cookies, 1, tokens, 1);
-    puts(message);
-    puts(token);
-
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
-
-    // Send the request to the server
-    send_to_server(sockfd, message);
-
-    // Get the response from the server
-    response = receive_from_server(sockfd);
-    puts(response);
-
-    // Extract HTTP code from response
-    char *code = new char[4];
-    extract_code(response, code);
-    puts(code);
-
-    // If response contains code 200, the user entered the library
-    char *res = strstr(response, "200 OK");
-    res != NULL ? cout << "Got the list of books." << endl
-                : cout << "You are not logged in or you dont have access to the library." << endl;
-
-    char *content = new char[MAX_CONTENT_LEN];
-    if (res)
-    {
-        // Extract the content
-        json content_json = json::array();
-        extract_list(response, content_json);
-
-        // Copy the content
-        json_list_to_string(content_json, content);
-        puts(content);
-    }
-
-    // Deallocate the memory
-    deallocate_memory1(response, message, host, url, ip, code);
-
-    // Close connection
-    close_connection(sockfd);
-}
-
-void handle_get_book(char *cookie, char *token)
-{
-    if (cookie == "" || token == "")
-    {
-        cout << "You must be logged in to access library contents." << endl;
-        return;
-    }
+    // Prompt the user for username and password
+    char *keys[CREDETIALS_COUNT];
+    char *values[CREDETIALS_COUNT];
 
     // Allocate memory for the array elements
-    char *message = (char *)malloc(BUFLEN * sizeof(char));
-    char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
+    keys[0] = new char[MAX_KEY_LEN];
+    keys[1] = new char[MAX_KEY_LEN];
+    values[0] = new char[MAX_VALUE_LEN];
+    values[1] = new char[MAX_VALUE_LEN];
 
-    // Ask for the id
-    char *id = new char[MAX_ID_LEN];
-    id_prompt(id);
-
-    // Create the url, host and content type
-    char *host = new char[MAX_HOST_LEN];
-    char *url = new char[URL_SIZE];
-    strcpy(host, "34.254.242.81:8080");
-    strcpy(url, "/api/v1/tema/library/books/");
-    strcat(url, id);
-
-    // Create cookies and tokens
-    char *cookies[MAX_COOKIE_COUNT] = {cookie};
-    char *tokens[MAX_TOKEN_COUNT] = {token};
-
-    // Create the request
-    message = compute_get_request(host, url, NULL, cookies, 1, tokens, 1);
-
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
+    account_prompt(keys, values);
 
     // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
-
-    // Send the request to the server
-    send_to_server(sockfd, message);
-
-    // Get the response from the server
-    response = receive_from_server(sockfd);
-
-    // Extract HTTP code from response
-    char *code = new char[4];
-    extract_code(response, code);
-    puts(code);
-
-    // If response contains code 200, the user entered the library
-    char *res1 = strstr(response, "200 OK");
-    if (res1 != NULL)
-    {
-        cout << "Got the solicited book." << endl;
-    }
-
-    char *res = strstr(response, "403");
-    if (res != NULL)
-    {
-        cout << "You are not logged in or you dont have access to the library." << endl;
-    }
-
-    res = strstr(response, "404");
-    if (res != NULL)
-    {
-        cout << "No book with the given ID." << endl;
-    }
-
-    char *content = new char[MAX_CONTENT_LEN];
-    if (res1 != NULL)
-    {
-        // Extract the content
-        json content_json;
-        extract_token_book(response, content_json);
-
-        // Copy the content
-        json_object_to_string(content_json, content);
-        puts(content);
-    }
-
-    // Deallocate the memory
-    deallocate_memory2(response, message, host, url, ip, code, id);
-
-    // Close connection
-    close_connection(sockfd);
-}
-
-void handle_add_book(char *cookie, char *token)
-{
-    if (cookie == "" || token == "")
-    {
-        cout << "You must be logged in to access library contents." << endl;
-        return;
-    }
-
-    // Allocate memory for the array elements
-    char *message = (char *)malloc(BUFLEN * sizeof(char));
-    char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
-
-    // Create the url, host and content type
     char *host = new char[MAX_HOST_LEN];
     char *url = new char[URL_SIZE];
     char *content_type = new char[MAX_TYPE_LEN];
     strcpy(host, "34.254.242.81:8080");
-    strcpy(url, "/api/v1/tema/library/books");
+    strcpy(url, "/api/v1/tema/auth/register");
     strcpy(content_type, "application/json");
 
-    // Create field keys
-    char title_k[MAX_TITLE_LEN] = "title";
-    char author_k[MAX_AUTHOR_LEN] = "author";
-    char genre_k[MAX_GENRE_LEN] = "genre";
-    char page_count_K[MAX_PAGE_COUNT_LEN] = "page_count";
-    char publisher_k[MAX_PUBLISHER_LEN] = "publisher";
+    // Open connection and send the request
+    message = compute_post_request(host, url, content_type, keys, values, CREDETIALS_COUNT, NULL, 0, NULL, 0);
 
-    // Create field values
-    char *title = new char[MAX_TITLE_LEN];
-    char *author = new char[MAX_AUTHOR_LEN];
-    char *genre = new char[MAX_GENRE_LEN];
-    char *page_count = new char[MAX_PAGE_COUNT_LEN];
-    char *publisher = new char[MAX_PUBLISHER_LEN];
+    // Create the ip
+    char *ip = new char[MAX_IP_SIZE];
+    strcpy(ip, "34.254.242.81");
 
-    // Ask for the fields
-    book_prompt(title, author, genre, page_count, publisher);
+    // Open connection
+    int sockfd = open_connection(ip, PORT, AF_INET, SOCK_STREAM, 0);
 
-    // Create the keys
-    char *keys[MAX_KEYS_COUNT] = {title_k, author_k, genre_k, page_count_K, publisher_k};
-    char *values[MAX_VALUES_COUNT] = {title, author, genre, page_count, publisher};
+    // Send the request to the server
+    send_to_server(sockfd, message);
 
-    // Create cookies and tokens
-    char *cookies[MAX_COOKIE_COUNT] = {cookie};
-    char *tokens[MAX_TOKEN_COUNT] = {token};
+    // Get the response from the server
+    response = receive_from_server(sockfd);
 
-    // Create the request
-    message = compute_post_request(host, url, content_type, keys, values, BOOK_FIELDS_COUNT, cookies, 1, tokens, 1);
-    puts(message);
+    // Extract HTTP code from response
+    char *code = new char[4];
+    extract_code(response, code);
+
+    // If response contains code 201, the user was created
+    strstr(response, "201 Created") != NULL ? cout << "User created succesfully." << endl
+                                            : cout << "User already exists." << endl;
+
+    // Deallocate the memory
+    deallocate_memory(response, message, keys, values, host, url, content_type, ip, code);
+
+    // Close connection
+    close_connection(sockfd);
+}
+
+void handle_login(char *cookie)
+{
+    // Allocate memory for the array elements
+    char *message = (char *)malloc(BUFLEN * sizeof(char));
+    char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
+
+    // Prompt the user for username and password
+    char *keys[CREDETIALS_COUNT];
+    char *values[CREDETIALS_COUNT];
+
+    // Allocate memory for the array elements
+    keys[0] = new char[MAX_KEY_LEN];
+    keys[1] = new char[MAX_KEY_LEN];
+    values[0] = new char[MAX_VALUE_LEN];
+    values[1] = new char[MAX_VALUE_LEN];
+
+    account_prompt(keys, values);
+
+    // Open connection
+    char *host = new char[MAX_HOST_LEN];
+    char *url = new char[URL_SIZE];
+    char *content_type = new char[MAX_TYPE_LEN];
+    strcpy(host, "34.254.242.81:8080");
+    strcpy(url, "/api/v1/tema/auth/login");
+    strcpy(content_type, "application/json");
+
+    // Open connection and send the request
+    message = compute_post_request(host, url, content_type, keys, values, CREDETIALS_COUNT, NULL, 0, NULL, 0);
 
     // Create the ip
     char *ip = new char[MAX_IP_SIZE];
@@ -231,34 +113,85 @@ void handle_add_book(char *cookie, char *token)
 
     // Get the response from the server
     response = receive_from_server(sockfd);
-    puts(response);
 
     // Extract HTTP code from response
     char *code = new char[4];
     extract_code(response, code);
-    puts(code);
 
-    // If response contains code 200, the user entered the library
-    char *res1 = strstr(response, "200 OK");
-    if (res1 != NULL)
-    {
-        cout << "Added the book." << endl;
-    }
+    // If response contains code 200, the user was logged in
+    char *res = strstr(response, "200 OK");
+    res != NULL ? cout << "User logged in succesfully." << endl
+                : cout << "Wrong username or password." << endl;
 
-    char *res = strstr(response, "403");
     if (res != NULL)
     {
-        cout << "You are not logged in or you dont have access to the library." << endl;
-    }
-
-    res = strstr(response, "404");
-    if (res != NULL)
-    {
-        cout << "No book with the given ID." << endl;
+        // Extract the cookie
+        extract_cookie(response, cookie);
     }
 
     // Deallocate the memory
-    deallocate_memory3(response, message, host, url, content_type, ip, code, title, author, genre, publisher, page_count);
+    deallocate_memory(response, message, keys, values, host, url, content_type, ip, code);
+
+    // Close connection
+    close_connection(sockfd);
+}
+
+void handle_enter_library(char *cookie, char *token)
+{
+    if (cookie == "")
+    {
+        cout << "You must be logged in to enter the library." << endl;
+        return;
+    }
+
+    // Allocate memory for the array elements
+    char *message = (char *)malloc(BUFLEN * sizeof(char));
+    char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
+
+    // Open connection
+    char *host = new char[MAX_HOST_LEN];
+    char *url = new char[URL_SIZE];
+    strcpy(host, "34.254.242.81:8080");
+    strcpy(url, "/api/v1/tema/library/access");
+
+    char *cookies[MAX_COOKIE_COUNT] = {cookie};
+    // Open connection and send the request
+    message = compute_get_request(host, url, NULL, cookies, 1, NULL, 0);
+
+    // Create the ip
+    char *ip = new char[MAX_IP_SIZE];
+    strcpy(ip, "34.254.242.81");
+
+    // Open connection
+    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+
+    // Send the request to the server
+    send_to_server(sockfd, message);
+
+    // Get the response from the server
+    response = receive_from_server(sockfd);
+
+    // Extract HTTP code from response
+    char *code = new char[4];
+    extract_code(response, code);
+
+    // If response contains code 200, the user entered the library
+    char *res = strstr(response, "200 OK");
+    res != NULL ? cout << "Entered the library successfully." << endl
+                : cout << "You are not logged in." << endl;
+
+    if (res)
+    {
+        // Extract the cookie
+        json token_json;
+        extract_token_book(response, token_json);
+
+        // Copy the token
+        strcpy(token, token_json["token"].get<std::string>().c_str());
+    }
+
+    // Deallocate the memory
+    deallocate_memory1(response, message, host, url, ip, code);
 
     // Close connection
     close_connection(sockfd);
