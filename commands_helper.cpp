@@ -66,7 +66,7 @@ void deallocate_memory1(char *response, char *message,
 }
 
 void deallocate_memory2(char *response, char *message,
-                        char *host, char *url, char *content_type, char *ip, char *code, char *id)
+                        char *host, char *url, char *ip, char *code, char *id)
 {
     // Free
     free(response);
@@ -75,7 +75,6 @@ void deallocate_memory2(char *response, char *message,
     // Deallocate the memory
     delete[] host;
     delete[] url;
-    delete[] content_type;
     delete[] ip;
     delete[] code;
     delete[] id;
@@ -164,8 +163,9 @@ void id_prompt(char *id)
     std::strcpy(id, id_str.c_str());
 }
 
-void book_prompt(char *title, char *author, char *genre, char *publisher, char *page_count)
+void book_prompt(char *title, char *author, char *genre, char *page_count, char *publisher)
 {
+    // TO DO make possible to get space in title names
     // Read username and pasword from user
     string title_str;
     string author_str;
@@ -178,10 +178,35 @@ void book_prompt(char *title, char *author, char *genre, char *publisher, char *
     cin >> author_str;
     cout << "Genre: ";
     cin >> genre_str;
+
+    bool is_number = false;
+    while (!is_number)
+    {
+        cout << "Page count: ";
+        cin >> page_count_str;
+
+        // Check if input starts with 0
+        if (page_count_str[0] == '0')
+        {
+            cout << "Page count must not start with 0!" << endl;
+            continue;
+        }
+
+        // Check if the input is a number
+        is_number = true;
+        for (int i = 0; i < page_count_str.size(); i++)
+        {
+            if (!isdigit(page_count_str[i]))
+            {
+                is_number = false;
+                cout << "Page count must be a number!" << endl;
+                break;
+            }
+        }
+    }
+
     cout << "Publisher: ";
     cin >> publisher_str;
-    cout << "Page count: ";
-    cin >> page_count_str;
 
     // Copy the strings to the allocated memory
     std::strcpy(title, title_str.c_str());
