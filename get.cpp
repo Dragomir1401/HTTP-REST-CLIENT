@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <iostream>
-#include "headers.h"
+#include "headers.hpp"
 using namespace std;
 
 char *compute_get_request(char *host, char *url, char *query_params,
