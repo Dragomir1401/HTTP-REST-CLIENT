@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <arpa/inet.h>
-#include "headers.h"
+#include "headers.hpp"
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -46,15 +46,15 @@ int main(int argc, char *argv[])
         }
         else if (!strncmp(command.c_str(), "add_book", 8))
         {
-            system(command.c_str());
+            handle_add_book(cookie, token);
         }
         else if (!strncmp(command.c_str(), "delete_book", 11))
         {
-            system(command.c_str());
+            handle_delete_book(cookie, token);
         }
         else if (!strncmp(command.c_str(), "logout", 6))
         {
-            system(command.c_str());
+            handle_logout(cookie, token);
         }
         else
         {
