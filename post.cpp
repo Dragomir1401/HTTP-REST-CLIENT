@@ -16,7 +16,7 @@ using json = nlohmann::json;
 using namespace std;
 
 char *compute_post_request(char *host, char *url, char *content_type, char **keys, char **values,
-                           int body_data_fields_count, char **cookies, int cookies_count)
+                           int body_data_fields_count, char **cookies, int cookies_count, char **tokens, int tokens_count)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
@@ -54,6 +54,16 @@ char *compute_post_request(char *host, char *url, char *content_type, char **key
         for (int i = 0; i < cookies_count; i++)
         {
             snprintf(line, LINELEN, "Cookie: %s", cookies[i]);
+            compute_message(message, line);
+        }
+    }
+
+    // Add tokens
+    if (tokens != NULL)
+    {
+        for (int i = 0; i < tokens_count; i++)
+        {
+            snprintf(line, LINELEN, "Authorization: Bearer %s", tokens[i]);
             compute_message(message, line);
         }
     }
