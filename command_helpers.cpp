@@ -9,7 +9,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include "headers.h"
+#include "headers.hpp"
 #include "json.hpp"
 using json = nlohmann::json;
 
@@ -152,12 +152,49 @@ void extract_list(char *response, json &content_json)
     content_json = json::parse(content);
 }
 
+bool isNumber(string id)
+{
+    for (int i = 0; i < id.size(); i++)
+    {
+        if (!isdigit(id[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void id_prompt(char *id)
 {
-    // Read username and pasword from user
+    // Read book id from user
     string id_str;
-    cout << "Book ID: ";
-    cin >> id_str;
+    bool is_number = false;
+
+    while (!is_number)
+    {
+        cout << "Book ID: ";
+        cin >> id_str;
+
+        // Check if the id is negative
+        if (id_str[0] == '-')
+        {
+            cout << "Book ID must be positive!" << endl;
+            continue;
+        }
+
+        // Check if the id starts with 0
+        if (id_str[0] == '0')
+        {
+            cout << "Book ID must not start with 0!" << endl;
+            continue;
+        }
+
+        is_number = isNumber(id_str);
+        if (!is_number)
+        {
+            cout << "Book ID must be a number!" << endl;
+        }
+    }
 
     // Copy the strings to the allocated memory
     std::strcpy(id, id_str.c_str());
@@ -165,28 +202,41 @@ void id_prompt(char *id)
 
 void book_prompt(char *title, char *author, char *genre, char *page_count, char *publisher)
 {
-    // TO DO make possible to get space in title names
-    // Read username and pasword from user
-    string title_str;
-    string author_str;
-    string genre_str;
-    string publisher_str;
-    string page_count_str;
+    // Read book fields from user
     cout << "Title: ";
-    cin >> title_str;
-    cout << "Author: ";
-    cin >> author_str;
-    cout << "Genre: ";
-    cin >> genre_str;
+    fgets(title, MAX_TITLE_LEN, stdin);
+    fgets(title, MAX_TITLE_LEN, stdin);
+    title[strlen(title) - 1] = '\0';
+    puts(title);
 
+    cout << "Author: ";
+    fgets(author, MAX_AUTHOR_LEN, stdin);
+    author[strlen(author) - 1] = '\0';
+    puts(author);
+
+    cout << "Genre: ";
+    fgets(genre, MAX_GENRE_LEN, stdin);
+    genre[strlen(genre) - 1] = '\0';
+    puts(genre);
+
+    // Check if the input for page count is a number
     bool is_number = false;
     while (!is_number)
     {
         cout << "Page count: ";
-        cin >> page_count_str;
+        fgets(page_count, MAX_PAGE_COUNT_LEN, stdin);
+        page_count[strlen(page_count) - 1] = '\0';
+        puts(page_count);
+
+        // Check if the input is negative
+        if (page_count[0] == '-')
+        {
+            cout << "Page count must be positive!" << endl;
+            continue;
+        }
 
         // Check if input starts with 0
-        if (page_count_str[0] == '0')
+        if (page_count[0] == '0')
         {
             cout << "Page count must not start with 0!" << endl;
             continue;
@@ -194,9 +244,9 @@ void book_prompt(char *title, char *author, char *genre, char *page_count, char 
 
         // Check if the input is a number
         is_number = true;
-        for (int i = 0; i < page_count_str.size(); i++)
+        for (int i = 0; i < strlen(page_count); i++)
         {
-            if (!isdigit(page_count_str[i]))
+            if (!isdigit(page_count[i]))
             {
                 is_number = false;
                 cout << "Page count must be a number!" << endl;
@@ -206,29 +256,9 @@ void book_prompt(char *title, char *author, char *genre, char *page_count, char 
     }
 
     cout << "Publisher: ";
-    cin >> publisher_str;
-
-    // Copy the strings to the allocated memory
-    std::strcpy(title, title_str.c_str());
-    std::strcpy(author, author_str.c_str());
-    std::strcpy(genre, genre_str.c_str());
-    std::strcpy(publisher, publisher_str.c_str());
-    std::strcpy(page_count, page_count_str.c_str());
-}
-
-void json_list_to_string(json &content_json, char *content)
-{
-    // Print the json fields
-    for (int i = 0; i < content_json.size(); i++)
-    {
-        strcat(content, "Title: ");
-        strcat(content, content_json[i]["title"].get<string>().c_str());
-        strcat(content, "\n");
-        strcat(content, "ID: ");
-        strcat(content, to_string(content_json[i]["id"].get<int>()).c_str());
-        strcat(content, "\n");
-        strcat(content, "\n");
-    }
+    fgets(publisher, MAX_PUBLISHER_LEN, stdin);
+    publisher[strlen(publisher) - 1] = '\0';
+    puts(publisher);
 }
 
 void json_object_to_string(json &content_json, char *content)
@@ -250,4 +280,21 @@ void json_object_to_string(json &content_json, char *content)
     strcat(content, to_string(content_json["page_count"].get<int>()).c_str());
     strcat(content, "\n");
     strcat(content, "\n");
+}
+
+bool check_access(char *cookie, char *token)
+{
+    if (!strcmp(cookie, ""))
+    {
+        cout << "You must be logged in to access library contents." << endl;
+        return false;
+    }
+
+    if (!strcmp(token, ""))
+    {
+        cout << "You must have entered the library to access the library contents. " << endl;
+        return false;
+    }
+
+    return true;
 }
