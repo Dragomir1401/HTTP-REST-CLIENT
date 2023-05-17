@@ -14,6 +14,8 @@
 using json = nlohmann::json;
 
 using namespace std;
+extern pthread_mutex_t mtx;
+extern int sockfd;
 
 void handle_register()
 {
@@ -31,7 +33,11 @@ void handle_register()
     values[0] = new char[MAX_VALUE_LEN];
     values[1] = new char[MAX_VALUE_LEN];
 
-    account_prompt(keys, values);
+    int rc = account_prompt(keys, values);
+    if (rc == -1)
+    {
+        return;
+    }
 
     // Open connection
     char *host = new char[MAX_HOST_LEN];
@@ -44,12 +50,7 @@ void handle_register()
     // Open connection and send the request
     message = compute_post_request(host, url, content_type, keys, values, CREDETIALS_COUNT, NULL, 0, NULL, 0);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, PORT, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -57,27 +58,22 @@ void handle_register()
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, 1);
 
     // If response contains code 201, the user was created
     strstr(response, "201 Created") != NULL ? cout << "User created succesfully." << endl
                                             : cout << "User already exists." << endl;
 
     // Deallocate the memory
-    deallocate_memory(response, message, keys, values, host, url, content_type, ip, code);
+    deallocate_memory(response, message, keys, values, host, url, content_type, code);
 }
 
 void handle_login(char *cookie)
 {
-    // Check if the user is already logged in
-    if (strcmp(cookie, "") != 0)
-    {
-        cout << "You are already logged in." << endl;
-        return;
-    }
-
     // Allocate memory for the array elements
     char *message = (char *)malloc(BUFLEN * sizeof(char));
     char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
@@ -92,7 +88,11 @@ void handle_login(char *cookie)
     values[0] = new char[MAX_VALUE_LEN];
     values[1] = new char[MAX_VALUE_LEN];
 
-    account_prompt(keys, values);
+    int rc = account_prompt(keys, values);
+    if (rc == -1)
+    {
+        return;
+    }
 
     // Open connection
     char *host = new char[MAX_HOST_LEN];
@@ -105,12 +105,7 @@ void handle_login(char *cookie)
     // Open connection and send the request
     message = compute_post_request(host, url, content_type, keys, values, CREDETIALS_COUNT, NULL, 0, NULL, 0);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -118,23 +113,43 @@ void handle_login(char *cookie)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, 1);
 
-    // If response contains code 200, the user was logged in
+    // If cookie is not empty
+    if (strcmp(cookie, ""))
+    {
+        // Update the cookie
+        extract_cookie(response, cookie);
+
+        cout << "User already logged in. Logout first if you want to switch acccounts." << endl;
+
+        deallocate_memory(response, message, keys, values, host, url, content_type, code);
+        return;
+    }
+
+    // If response contains code 200, the user was logged in succesfully
     char *res = strstr(response, "200 OK");
-    res != NULL ? cout << "User logged in succesfully." << endl
-                : cout << "Wrong username or password." << endl;
+    if (res != NULL)
+    {
+        cout << "User logged in succesfully." << endl;
+    }
+    else
+    {
+        cout << "Wrong username or password." << endl;
+    }
 
     if (res != NULL)
     {
-        // Extract the cookie
+        // Extract or update the cookie
         extract_cookie(response, cookie);
     }
 
     // Deallocate the memory
-    deallocate_memory(response, message, keys, values, host, url, content_type, ip, code);
+    deallocate_memory(response, message, keys, values, host, url, content_type, code);
 }
 
 void handle_enter_library(char *cookie, char *token)
@@ -159,12 +174,7 @@ void handle_enter_library(char *cookie, char *token)
     // Open connection and send the request
     message = compute_get_request(host, url, NULL, cookies, 1, NULL, 0);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -172,9 +182,11 @@ void handle_enter_library(char *cookie, char *token)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, 1);
 
     // If response contains code 200, the user entered the library
     char *res = strstr(response, "200 OK");
@@ -192,7 +204,7 @@ void handle_enter_library(char *cookie, char *token)
     }
 
     // Deallocate the memory
-    deallocate_memory1(response, message, host, url, ip, code);
+    deallocate_memory1(response, message, host, url, code);
 }
 
 void handle_logout(char *cookie, char *token)
@@ -220,12 +232,7 @@ void handle_logout(char *cookie, char *token)
     // Create the request
     message = compute_get_request(host, url, NULL, cookies, 1, tokens, 1);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -233,9 +240,11 @@ void handle_logout(char *cookie, char *token)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, 1);
 
     // If response contains code 200, the user entered the library
     char *res1 = strstr(response, "200 OK");
@@ -255,7 +264,7 @@ void handle_logout(char *cookie, char *token)
     }
 
     // Deallocate the memory
-    deallocate_memory1(response, message, host, url, ip, code);
+    deallocate_memory1(response, message, host, url, code);
 
     // Invalidate token and cookie
     strcpy(token, "");
