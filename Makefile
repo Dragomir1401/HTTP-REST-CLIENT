@@ -4,7 +4,7 @@ CLIENT_SOURCES=client.cpp access_commands.cpp get.cpp helpers.cpp post.cpp buffe
 LIBRARY=nope
 INCPATHS=include
 LIBPATHS=.
-LDFLAGS=
+LDFLAGS=-pthread
 CFLAGS=-g -c -Wall -Werror -Wno-error=unused-variable
 CC=g++
 
@@ -20,7 +20,7 @@ CLIENT_BINARY=$(CLIENT_PROJECT)
 all: $(CLIENT_SOURCES) $(CLIENT_BINARY)
 
 $(CLIENT_BINARY): $(CLIENT_OBJECTS)
-	$(CC) $(LIBFLAGS) $(CLIENT_OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $(LIBFLAGS) $(CLIENT_OBJECTS) -o $@
 
 .c.o:
 	$(CC) $(INCFLAGS) $(CFLAGS) -fPIC $< -o $@
