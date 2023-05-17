@@ -12,10 +12,12 @@
 #include "headers.hpp"
 #include "json.hpp"
 using json = nlohmann::json;
+extern pthread_mutex_t mtx;
+extern int sockfd;
 
 using namespace std;
 
-void get_book_helper(char *cookie, char *token, char *id)
+void get_book_helper(char *cookie, char *token, char *id, int print_flag)
 {
     // Check if the user is logged in andd has access
     if (!check_access(cookie, token))
@@ -39,12 +41,7 @@ void get_book_helper(char *cookie, char *token, char *id)
     // Create the request
     message = compute_get_request(host, url, NULL, cookies, 1, tokens, 1);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -52,27 +49,40 @@ void get_book_helper(char *cookie, char *token, char *id)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    puts(response);
+
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, print_flag);
 
     // If response contains code 200, the user entered the library
     char *res1 = strstr(response, "200 OK");
     if (res1 != NULL)
     {
-        cout << "Got the solicited book." << endl;
+        if (print_flag)
+        {
+            cout << "Got the solicited book." << endl;
+        }
     }
 
     char *res = strstr(response, "403");
     if (res != NULL)
     {
-        cout << "You are not logged in or you dont have access to the library." << endl;
+        if (print_flag)
+        {
+            cout << "You are not logged in or you dont have access to the library." << endl;
+        }
     }
 
     res = strstr(response, "404");
     if (res != NULL)
     {
-        cout << "No book with the given ID." << endl;
+        if (print_flag)
+        {
+            cout << "No book with the given ID." << endl;
+        }
     }
 
     char *content = new char[MAX_CONTENT_LEN];
@@ -83,12 +93,14 @@ void get_book_helper(char *cookie, char *token, char *id)
         extract_token_book(response, content_json);
 
         // Copy the content
-        json_object_to_string(content_json, content);
+        json_object_to_string(content_json, content, id);
+
+        // Print the content
         puts(content);
     }
 
     // Deallocate the memory
-    deallocate_memory2(response, message, host, url, ip, code, id);
+    deallocate_memory2(response, message, host, url, code, id);
 }
 
 void handle_get_books(char *cookie, char *token)
@@ -112,12 +124,7 @@ void handle_get_books(char *cookie, char *token)
     // Open connection and send the request
     message = compute_get_request(host, url, NULL, cookies, 1, tokens, 1);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -125,9 +132,11 @@ void handle_get_books(char *cookie, char *token)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, 1);
 
     // If response contains code 200, the user entered the library
     char *res = strstr(response, "200 OK");
@@ -150,21 +159,27 @@ void handle_get_books(char *cookie, char *token)
             strcpy(id, to_string(content_json[i]["id"].get<int>()).c_str());
 
             // Get the book details
-            get_book_helper(cookie, token, id);
+            get_book_helper(cookie, token, id, 0);
         }
     }
 
     // Deallocate the memory
-    deallocate_memory1(response, message, host, url, ip, code);
+    deallocate_memory1(response, message, host, url, code);
 }
 
 void handle_get_book(char *cookie, char *token)
 {
     // Ask for the id
     char *id = new char[MAX_ID_LEN];
-    id_prompt(id);
 
-    get_book_helper(cookie, token, id);
+    // Exit in case of eronated input
+    int rc = id_prompt(id);
+    if (rc == -1)
+    {
+        return;
+    }
+
+    get_book_helper(cookie, token, id, 1);
 }
 
 void handle_add_book(char *cookie, char *token)
@@ -173,8 +188,8 @@ void handle_add_book(char *cookie, char *token)
         return;
 
     // Allocate memory for the array elements
-    char *message = (char *)malloc(BUFLEN * sizeof(char));
-    char *response = (char *)malloc(MAX_RESPONE_LEN * sizeof(char));
+    char *message = new char[BUFLEN];
+    char *response = new char[MAX_RESPONE_LEN];
 
     // Create the url, host and content type
     char *host = new char[MAX_HOST_LEN];
@@ -198,8 +213,10 @@ void handle_add_book(char *cookie, char *token)
     char *page_count = new char[MAX_PAGE_COUNT_LEN];
     char *publisher = new char[MAX_PUBLISHER_LEN];
 
-    // Ask for the fields
-    book_prompt(title, author, genre, page_count, publisher);
+    // Ask for the fields and if they are not correct return
+    int rc = book_prompt(title, author, genre, page_count, publisher);
+    if (rc == -1)
+        return;
 
     // Create the keys
     char *keys[MAX_KEYS_COUNT] = {title_k, author_k, genre_k, page_count_K, publisher_k};
@@ -212,12 +229,7 @@ void handle_add_book(char *cookie, char *token)
     // Create the request
     message = compute_post_request(host, url, content_type, keys, values, BOOK_FIELDS_COUNT, cookies, 1, tokens, 1);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -225,9 +237,11 @@ void handle_add_book(char *cookie, char *token)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, 1);
 
     // If response contains code 200, the user entered the library
     char *res1 = strstr(response, "200 OK");
@@ -249,14 +263,20 @@ void handle_add_book(char *cookie, char *token)
     }
 
     // Deallocate the memory
-    deallocate_memory3(response, message, host, url, content_type, ip, code, title, author, genre, publisher, page_count);
+    deallocate_memory3(response, message, host, url, content_type, code, title, author, genre, publisher, page_count);
 }
 
 void handle_delete_book(char *cookie, char *token)
 {
     // Ask for the id
     char *id = new char[MAX_ID_LEN];
-    id_prompt(id);
+
+    // Exit in case of eronated input
+    int rc = id_prompt(id);
+    if (rc == -1)
+    {
+        return;
+    }
 
     // Check if the user is logged in andd has access
     if (!check_access(cookie, token))
@@ -280,12 +300,7 @@ void handle_delete_book(char *cookie, char *token)
     // Create the request
     message = compute_delete_request(host, url, cookies, 1, tokens, 1);
 
-    // Create the ip
-    char *ip = new char[MAX_IP_SIZE];
-    strcpy(ip, "34.254.242.81");
-
-    // Open connection
-    int sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
+    pthread_mutex_lock(&mtx);
 
     // Send the request to the server
     send_to_server(sockfd, message);
@@ -293,9 +308,11 @@ void handle_delete_book(char *cookie, char *token)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
+    pthread_mutex_unlock(&mtx);
+
     // Extract HTTP code from response
     char *code = new char[4];
-    extract_code(response, code);
+    extract_code(response, code, 1);
 
     // If response contains code 200, the user entered the library
     char *res1 = strstr(response, "200 OK");
@@ -317,5 +334,5 @@ void handle_delete_book(char *cookie, char *token)
     }
 
     // Deallocate the memory
-    deallocate_memory2(response, message, host, url, ip, code, id);
+    deallocate_memory2(response, message, host, url, code, id);
 }
