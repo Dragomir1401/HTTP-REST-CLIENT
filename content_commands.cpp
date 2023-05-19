@@ -49,8 +49,6 @@ void get_book_helper(char *cookie, char *token, char *id, int print_flag)
     // Get the response from the server
     response = receive_from_server(sockfd);
 
-    puts(response);
-
     pthread_mutex_unlock(&mtx);
 
     // Extract HTTP code from response
@@ -140,8 +138,8 @@ void handle_get_books(char *cookie, char *token)
 
     // If response contains code 200, the user entered the library
     char *res = strstr(response, "200 OK");
-    res != NULL ? cout << "Got the list of books." << endl
-                : cout << "You are not logged in or you dont have access to the library." << endl;
+    if (res == NULL)
+        cout << "You are not logged in or you dont have access to the library." << endl;
 
     if (res)
     {
