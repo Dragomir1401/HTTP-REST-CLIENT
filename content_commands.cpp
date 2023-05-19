@@ -147,17 +147,13 @@ void handle_get_books(char *cookie, char *token)
         json content_json = json::array();
         extract_list(response, content_json);
 
-        // Get details for each book
+        puts(content_json.dump(4).c_str());
+
+        // Print ID and title for each book
         for (int i = 0; i < content_json.size(); i++)
         {
-            // Allocate memory for the id
-            char *id = new char[MAX_ID_LEN];
-
-            // Get the id of the book
-            strcpy(id, to_string(content_json[i]["id"].get<int>()).c_str());
-
-            // Get the book details
-            get_book_helper(cookie, token, id, 0);
+            cout << "ID=" << content_json[i]["id"] << endl;
+            cout << "title=" << content_json[i]["title"] << endl;
         }
     }
 
