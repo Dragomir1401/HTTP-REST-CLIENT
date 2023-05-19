@@ -19,9 +19,9 @@ int account_prompt(char *keys[CREDETIALS_COUNT], char *values[CREDETIALS_COUNT])
     // Read username and pasword from user
     char *username = new char[MAX_VALUE_LEN];
     char *password = new char[MAX_VALUE_LEN];
-    cout << "username: ";
+    cout << "username=";
     fgets(username, MAX_VALUE_LEN, stdin);
-    cout << "password: ";
+    cout << "password=";
     fgets(password, MAX_VALUE_LEN, stdin);
 
     // Check if the username and password are valid
@@ -130,7 +130,7 @@ void extract_code(char *response, char *code, int print_flag)
         return;
     }
 
-    cout << "Return code: " << code << " ";
+    cout << "Return code=" << code << " ";
 
     // If code is 2xx then print ok
     if (code[0] == '2')
@@ -212,7 +212,7 @@ bool isNumber(char *id)
 int id_prompt(char *id)
 {
     // Read book id from user
-    cout << "Book ID: ";
+    cout << "Book ID=";
     fgets(id, MAX_ID_LEN, stdin);
     id[strlen(id) - 1] = '\0';
 
@@ -242,7 +242,7 @@ int id_prompt(char *id)
 int book_prompt(char *title, char *author, char *genre, char *page_count, char *publisher)
 {
     // Read book fields from user
-    cout << "Title: ";
+    cout << "title=";
     fgets(title, MAX_TITLE_LEN, stdin);
     title[strlen(title) - 1] = '\0';
 
@@ -253,7 +253,7 @@ int book_prompt(char *title, char *author, char *genre, char *page_count, char *
         return -1;
     }
 
-    cout << "Author: ";
+    cout << "author=";
     fgets(author, MAX_AUTHOR_LEN, stdin);
     author[strlen(author) - 1] = '\0';
 
@@ -264,7 +264,7 @@ int book_prompt(char *title, char *author, char *genre, char *page_count, char *
         return -1;
     }
 
-    cout << "Genre: ";
+    cout << "genre=";
     fgets(genre, MAX_GENRE_LEN, stdin);
     genre[strlen(genre) - 1] = '\0';
 
@@ -275,7 +275,7 @@ int book_prompt(char *title, char *author, char *genre, char *page_count, char *
         return -1;
     }
 
-    cout << "Publisher: ";
+    cout << "publisher=";
     fgets(publisher, MAX_PUBLISHER_LEN, stdin);
     publisher[strlen(publisher) - 1] = '\0';
 
@@ -287,10 +287,9 @@ int book_prompt(char *title, char *author, char *genre, char *page_count, char *
     }
 
     // Check if the input for page count is a number
-    cout << "Page count: ";
+    cout << "page_count=";
     fgets(page_count, MAX_PAGE_COUNT_LEN, stdin);
     page_count[strlen(page_count) - 1] = '\0';
-    puts(page_count);
 
     // Check for empty page count
     if (strlen(page_count) == 0)
@@ -326,24 +325,23 @@ int book_prompt(char *title, char *author, char *genre, char *page_count, char *
 void json_object_to_string(json &content_json, char *content, char *id)
 {
     // Print the json fields
-    strcat(content, "ID: ");
+    strcat(content, "id=");
     strcat(content, id);
     strcat(content, "\n");
-    strcat(content, "Title: ");
+    strcat(content, "title=");
     strcat(content, content_json["title"].get<string>().c_str());
     strcat(content, "\n");
-    strcat(content, "Author: ");
+    strcat(content, "author=");
     strcat(content, content_json["author"].get<string>().c_str());
     strcat(content, "\n");
-    strcat(content, "Genre: ");
+    strcat(content, "genre=");
     strcat(content, content_json["genre"].get<string>().c_str());
     strcat(content, "\n");
-    strcat(content, "Publisher: ");
+    strcat(content, "publisher=");
     strcat(content, content_json["publisher"].get<string>().c_str());
     strcat(content, "\n");
-    strcat(content, "Page count: ");
+    strcat(content, "page count=");
     strcat(content, to_string(content_json["page_count"].get<int>()).c_str());
-    strcat(content, "\n");
     strcat(content, "\n");
 }
 
