@@ -190,8 +190,8 @@ void handle_enter_library(char *cookie, char *token)
 
     // If response contains code 200, the user entered the library
     char *res = strstr(response, "200 OK");
-    res != NULL ? cout << "Entered the library successfully." << endl
-                : cout << "You are not logged in." << endl;
+    if (res == NULL)
+        cout << "You are not logged in." << endl;
 
     if (res)
     {
