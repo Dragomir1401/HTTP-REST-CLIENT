@@ -71,41 +71,44 @@ int main(int argc, char *argv[])
     while (running)
     {
         cout << "Enter command: ";
-        fgets(command, 100, stdin);
+        fgets(command, MAX_AUTHOR_LEN, stdin);
+        // Remove the \n from the end of the string
+        command[strcspn(command, "\n")] = '\0';
+
         if (!strncmp(command, "exit", 4) && strlen(command) == 4)
         {
             cout << "Exiting..." << endl;
             running = false;
         }
-        else if (!strncmp(command, "register", 8) && strlen(command) == 9)
+        else if (!strncmp(command, "register", 8) && strlen(command) == 8)
         {
             handle_register();
         }
-        else if (!strncmp(command, "login", 5) && strlen(command) == 6)
+        else if (!strncmp(command, "login", 5) && strlen(command) == 5)
         {
             handle_login(cookie);
         }
-        else if (!strncmp(command, "enter_library", 13) && strlen(command) == 14)
+        else if (!strncmp(command, "enter_library", 13) && strlen(command) == 13)
         {
             handle_enter_library(cookie, token);
         }
-        else if (!strncmp(command, "get_books", 9) && strlen(command) == 10)
+        else if (!strncmp(command, "get_books", 9) && strlen(command) == 9)
         {
             handle_get_books(cookie, token);
         }
-        else if (!strncmp(command, "get_book", 8) && strlen(command) == 9)
+        else if (!strncmp(command, "get_book", 8) && strlen(command) == 8)
         {
             handle_get_book(cookie, token);
         }
-        else if (!strncmp(command, "add_book", 8) && strlen(command) == 9)
+        else if (!strncmp(command, "add_book", 8) && strlen(command) == 8)
         {
             handle_add_book(cookie, token);
         }
-        else if (!strncmp(command, "delete_book", 11) && strlen(command) == 12)
+        else if (!strncmp(command, "delete_book", 11) && strlen(command) == 11)
         {
             handle_delete_book(cookie, token);
         }
-        else if (!strncmp(command, "logout", 6) && strlen(command) == 7)
+        else if (!strncmp(command, "logout", 6) && strlen(command) == 6)
         {
             handle_logout(cookie, token);
         }
