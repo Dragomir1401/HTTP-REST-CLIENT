@@ -55,10 +55,16 @@ int main(int argc, char *argv[])
     char *ip = new char[MAX_IP_SIZE];
     strcpy(ip, "34.254.242.81");
 
+    // Create a thread that makes dummy request every 4 seconds
     pthread_t workerThread;
+
+    // Create the mutex
     pthread_mutex_init(&mtx, nullptr);
+
+    // Create the thread
     pthread_create(&workerThread, nullptr, dummy, nullptr);
 
+    // Open connection
     sockfd = open_connection(ip, 8080, AF_INET, SOCK_STREAM, 0);
 
     char *command = new char[MAX_COMMAND_LEN];
