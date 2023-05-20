@@ -145,14 +145,18 @@ void handle_get_books(char *cookie, char *token)
     {
         // Extract the content
         json content_json = json::array();
-        extract_list(response, content_json);
-
-        puts(content_json.dump(4).c_str());
+        int rc = extract_list(response, content_json);
+        if (rc == -1)
+        {
+            cout << "No books in the library." << endl;
+            deallocate_memory1(response, message, host, url, code);
+            return;
+        }
 
         // Print ID and title for each book
         for (int i = 0; i < content_json.size(); i++)
         {
-            cout << "ID=" << content_json[i]["id"] << endl;
+            cout << "id=" << content_json[i]["id"] << endl;
             cout << "title=" << content_json[i]["title"] << endl;
         }
     }
