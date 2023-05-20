@@ -1,0 +1,273 @@
+______________________________
+|                            |
+|   Copyright                |
+|      Dragomir Andrei 2023  |
+|                            |
+|____________________________|
+
+---------------------------------------------------------------------
+Nume: Dragomir Andrei
+Grupa: 322CA
+
+NETWORK PROTOCOLS
+
+----------------------------------------------------------------------------
+------------------------REST API CLIENT COMMUNICATION-----------------------
+----------------------------------------------------------------------------
+
+			                        CONTENT
+
+	- client.cpp - implementation of the client 
+
+    - access_commands.cpp - implementation of commands that make access to the server
+
+    - content_commands.cpp - implementation of commands that receive and post content
+
+    - command_helpers.cpp - implementation of helper functions for commands and prompts
+
+	- buffer.cpp - implementation of buffer used to store data for communication with server
+
+    - buffer.hpp - header file for buffer.cpp
+
+    - get.cpp - implementation of get command from the server
+
+    - post.cpp - implementation of post command on the server
+
+    - delete.cpp - implementation of delete command on the server
+
+    - helper.cpp - implementation of helper functions for server communication
+
+    - json.hpp - header of the nhlohmann json library
+
+    - Makefile - makefile for compiling the project
+
+	- README - this file
+
+
+----------------------------------------------------------------------------
+
+____________Description___________
+
+
+        The project implements a REST API client that can communicate with a server
+    using the HTTP protocol. The client can send requests to the server and receive 
+    responses from it. The client can also send and receive content from the server
+    using the HTTP protocol. 
+
+        It simulates and account based library applications with commands like:
+
+        - login - makes a post request to the server with the username and password
+                  and receives a cookie if the credentials are correct.
+
+        - register - makes a post request to the server with the username and password
+                        and succeds if the username is not already taken.
+                     
+        - enter_library - makes a get request to the server with the cookie received
+                          at login and receives a jwt token if the cookie is valid.
+
+        - get_books - makes a get request to the server with the jwt token received
+                      at enter_library and receives a list of books if the token is valid.
+                    - the list is JSON formatted and is printed in a human readable format.
+                    - the list contains titles and ids of books of all the books that 
+                      that username has added.
+
+        - get_book  - makes a get request to the server with the jwt token received
+                      at enter_library and an book id, receiving a book if the token is valid.
+                    - the book is JSON formatted and is printed in a human readable format.
+                    - the book contains title, author, genre, publisher, page_count and id.
+
+        - add_book - makes a post request to the server with the jwt token received
+                     at enter_library and book details, adding the book if the token is valid.
+                   - the book contains title, author, genre, publisher, page_count and id.
+
+        - delete_book - makes a delete request to the server with the jwt token received
+                        at enter_library and an book id, deleting the book if the token is valid.
+
+        - logout - makes a get request to the server with the cookie received
+                   at login and the jwt token, logging out the user if the cookie is valid.
+
+        - exit - exits the program.
+
+        The JSON parsing is done using the nlohmann json library. The official documentation
+    can be found at https://github.com/nlohmann/json.
+
+        Client execution flow looks like this:
+
+    +---------+          +---------+
+    | Start   | -------> |  Login  |-----------------------------------
+    +---------+          +---------+                                  |                    
+         |                    |                                       |                     
+         v                    v                                       |                      
+    +---------+          +---------+                                  |                  
+    | Register|          | Enter   |                                  |                      
+    +---------+          | Library |                                  |          
+                         +---------+-----------------------           |
+         /---------------/  |      |                      |           |
+         v                  |      v                      |           |
+    +------------+          |   +------------+            |           |
+    | Get Books  |          |   |  Add book  |            |           |
+    +------------+          v   +------------+            |           |
+         |          +----------------+     |              v           |
+         |          | Get Book by ID |     |            +---------+   |
+         |          +----------------+     |            | Delete  |   |
+         |                 |               |            | Book    |   |
+         |                 |               |            +---------+   |
+         |                 |               |              |           |
+         |                 |               |              |           |
+         |-----------------|----|----------|--------------|-----------|
+                                v
+                            +---------+
+                            | Logout  |
+                            +---------+
+                                |
+                                v
+                            +--------+
+                            | Exit   |
+                            +--------+
+
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------
+
+____________Implementation____________
+
+
+        The entire assignment was implemented in the program with all the
+    requirements.
+
+        The server keeps time to live just up to 5 seconds for connection
+    and if the client does not send a request in 5 seconds the connection
+    will close. To solve this impediment we created a separate thread that
+    send a dummy request every 4 seconds to keep the connection alive.
+    
+        Syncronization is done using a mutex and we simply lock and unlock
+    it between each request to ensure order.
+
+        The client is checks valid and invalid cases for commands. It takes
+    an robust approach and checks the command letters to match and the size,
+    else making it invalid.
+
+        The login command gets a cookie from the server and stores it for next
+    requests. The cookie is sent in the header of the request. The eneter_library
+    command gets a jwt token from the server and stores it for next requests.
+
+        Each command checks for error cases and prints the error message if
+    the case is met. The error messages are based on the correctinees of the
+    input and the response from the server. The error messages that are treated
+    by each command are:
+
+        - login - if the username or password are not given, contain spaces or if
+                  the username is already logged in or if the credentials are wrong.
+
+        - register - if the username or password are not given, contain spaces or if the username
+                     is already taken.
+
+        - enter_library - if the user is not already logged in or if the cookie is invalid.
+
+        - get_books - if the user is not logged in, if the user has not entered the library,
+                      if his library is empty.
+
+        - get_book - if the book id given is positive, if it starts with 0, if it is a number
+                     and has no spaces, if the user is not logged in, if the user has not entered
+                     the library, if the book id is not in the user's library.
+
+        - add_book - if the book details are not empty, if the page_count is positive, if the
+                     page_count starts with 0, if the page_count is a number and has no spaces,
+                     if the user is not logged in, if the user has not entered the library.
+
+        - delete_book - if the book id given is positive, if it starts with 0, if it is a number
+                        and has no spaces, if the user is not logged in, if the user has not entered
+                        the library, if the book id is not in the user's library.
+
+        - logout - if the user was not logged in or if the cookie is invalid.
+
+
+        The client is implemented using the socket API and the HTTP protocol.
+    The HTTP protocol is used to send requests to the server and receive responses
+    from it. The HTTP protocol is used because it is a simple protocol that is easy
+    to implement and it is also a stateless protocol which means that the server
+    does not keep track of the client's state. The HTTP protocol is used on top of
+    the TCP protocol because it is a reliable protocol that ensures that the data
+    is sent and received in the correct order and without corruption. The socket API
+    is used to create the sockets and to send and receive data on them.
+
+        The codes that te server returns are comunicaed to the client and the client
+    receives an according message.
+
+
+
+------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------
+
+_____________Comments_____________
+
+	
+        The implementation could have been done faster and better if I 
+    understood the theoretic part easier and realized how to debug network
+    problems. Overall the assignment was not that hard to implement, the
+    hardest part was creating correct the HTTP requests and responses.
+
+        After completing the implementation I can say I have a better
+    understanding of how a HTTP protocol works and how to implement it,
+    as well as how to treat errors and how to debug network problems.
+
+        I liked that there was freedom in the implementation and that
+    the requirements were clear and basic.
+
+
+------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------
+
+
+______________How to run it_____________
+
+
+	make
+- creates the client
+
+    ./client
+- runs the client
+    Then you can use the user-friendly commands:
+        - register
+        - login
+        - enter_library
+        - get_books
+        - get_book
+        - add_book
+        - delete_book
+        - logout
+        - exit
+
+    make clean
+- cleans the client executable
+
+
+-----------------------------------------------------------------------------
+
+
+
+
+-----------------------------------------------------------------------------
+
+
+Resources:
+
+https://gitlab.cs.pub.ro/pcom/homework4-public/-/tree/main/
+https://curs.upb.ro/2022/mod/forum/view.php?id=134022
+https://www.postman.com/
+https://github.com/nlohmann/json
+
+
+-----------------------------------------------------------------------------
