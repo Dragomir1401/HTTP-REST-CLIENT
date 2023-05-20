@@ -26,7 +26,12 @@
 #define MAX_KEYS_COUNT 50
 #define MAX_VALUES_COUNT 50
 #define BOOK_FIELDS_COUNT 5
+#define MAX_COMMAND_LEN 100
 #include "json.hpp"
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <mutex>
 using json = nlohmann::json;
 
 void handle_register();
@@ -43,25 +48,28 @@ void handle_login(char *cookie);
 void handle_enter_library(char *cookie, char *token);
 void handle_get_books(char *cookie, char *token);
 void deallocate_memory(char *response, char *message, char *keys[CREDETIALS_COUNT], char *values[CREDETIALS_COUNT],
-                       char *host, char *url, char *content_type, char *ip, char *code);
-void account_prompt(char *keys[CREDETIALS_COUNT], char *values[CREDETIALS_COUNT]);
-
+                       char *host, char *url, char *content_type, char *code);
+int account_prompt(char *keys[CREDETIALS_COUNT], char *values[CREDETIALS_COUNT]);
 void deallocate_memory1(char *response, char *message,
-                        char *host, char *url, char *ip, char *code);
-void extract_code(char *response, char *code);
+                        char *host, char *url, char *code);
+void extract_code(char *response, char *code, int print_flag);
 void extract_cookie(char *response, char *cookie);
-void extract_list(char *response, json &content_json);
+int extract_list(char *response, json &content_json);
 void extract_token_book(char *response, json &token_json);
 void handle_get_book(char *cookie, char *token);
-void id_prompt(char *id);
+int id_prompt(char *id);
 void deallocate_memory2(char *response, char *message,
-                        char *host, char *url, char *ip, char *code, char *id);
-void json_list_to_string(json &content_json, char *content);
-void json_object_to_string(json &content_json, char *content);
-void book_prompt(char *title, char *author, char *genre, char *page_count, char *publisher);
+                        char *host, char *url, char *code, char *id);
+void json_object_to_string(json &content_json, char *content, char *id);
+int book_prompt(char *title, char *author, char *genre, char *page_count, char *publisher);
 void deallocate_memory3(char *response, char *message,
-                        char *host, char *url, char *content_type, char *ip, char *code, char *title,
+                        char *host, char *url, char *content_type, char *code, char *title,
                         char *author, char *genre, char *publisher, char *page_count);
 void handle_add_book(char *cookie, char *token);
+char *compute_delete_request(char *host, char *url, char **cookies, int cookies_count,
+                             char **tokens, int tokens_count);
+void handle_delete_book(char *cookie, char *token);
+void handle_logout(char *cookie, char *token);
+bool check_access(char *cookie, char *token);
 
 #endif /* _HEADER_H_ */
