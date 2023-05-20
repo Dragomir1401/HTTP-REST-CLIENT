@@ -24,7 +24,7 @@ int account_prompt(char *keys[CREDETIALS_COUNT], char *values[CREDETIALS_COUNT])
     cout << "password=";
     fgets(password, MAX_VALUE_LEN, stdin);
 
-    // Check if the username and password are valid
+    // Remove the newline character from the end of the strings
     if (username[strlen(username) - 1] == '\n')
     {
         username[strlen(username) - 1] = '\0';
@@ -181,8 +181,14 @@ void extract_token_book(char *response, json &token_json)
     token_json = json::parse(content);
 }
 
-void extract_list(char *response, json &content_json)
+int extract_list(char *response, json &content_json)
 {
+    // Check if the response is empty
+    if (strstr(response, "[]"))
+    {
+        return -1;
+    }
+
     // Extract content from response
     char *token = strtok(response, "[");
     token = strtok(NULL, "]");
@@ -195,6 +201,8 @@ void extract_list(char *response, json &content_json)
 
     // Create the json object
     content_json = json::parse(content);
+
+    return 1;
 }
 
 bool isNumber(char *id)
@@ -212,7 +220,7 @@ bool isNumber(char *id)
 int id_prompt(char *id)
 {
     // Read book id from user
-    cout << "Book ID=";
+    cout << "Book id=";
     fgets(id, MAX_ID_LEN, stdin);
     id[strlen(id) - 1] = '\0';
 
@@ -340,7 +348,7 @@ void json_object_to_string(json &content_json, char *content, char *id)
     strcat(content, "publisher=");
     strcat(content, content_json["publisher"].get<string>().c_str());
     strcat(content, "\n");
-    strcat(content, "page count=");
+    strcat(content, "page_count=");
     strcat(content, to_string(content_json["page_count"].get<int>()).c_str());
     strcat(content, "\n");
 }
